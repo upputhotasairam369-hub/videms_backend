@@ -1,0 +1,27 @@
+# --- Core Framework ---
+Django>=5.0,<5.1
+djangorestframework>=3.14.0
+
+# --- React Integration & API ---
+django-cors-headers>=4.3.0
+django-filter>=23.5
+
+# --- Authentication ---
+# For connecting with your React 'authSlice' using JSON Web Tokens
+djangorestframework-simplejwt>=5.3.1
+
+# --- Media & Files ---
+# Essential for Django's ImageField (crucial for your Gallery/Products)
+Pillow>=10.2.0
+
+# --- Environment & Configuration ---
+# For safely storing your SECRET_KEY and Database credentials
+python-dotenv>=1.0.1
+
+# --- Database Integration ---
+# Django uses SQLite by default. Uncomment the one you need for production:
+psycopg2-binary>=2.9.9  # For PostgreSQL (Recommended)
+# mysqlclient>=2.2.4      # For MySQL
+
+# --- Deployment ---
+gunicorn>=21.2.0

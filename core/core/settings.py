@@ -78,7 +78,7 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # and falls back to your local PostgreSQL when developing on your machine.
 DATABASES = {
     'default': dj_database_url.config(
-        default='postgresql://postgres:gawmFpKwvqAPrXtSjoLAdYeGntFrjCKs@hayabusa.proxy.rlwy.net:12444/railway',
+        default='postgresql://postgres:EAspUlLarAmEHGpplTLdMjSEcSDNcLDk@hayabusa.proxy.rlwy.net:22399/railway',
         conn_max_age=600
     )
 }

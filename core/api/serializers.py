@@ -3,6 +3,7 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import Product, ProductImage, ProductVariant
 from .models import Product, Banner
+from .models import Order, OrderItem
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -48,4 +49,23 @@ class BannerSerializer(serializers.ModelSerializer):
         model = Banner
         # 🚀 CHANGED: 'image_url' is now 'image'
         fields = ['id', 'title', 'subtitle', 'tag', 'image', 'link_url', 'display_order']
+
+# Order details #######
+class OrderItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrderItem
+        fields = ['id', 'product', 'variant', 'product_name', 'quantity', 'price']
+
+class OrderSerializer(serializers.ModelSerializer):
+    # Nests the purchased items inside the main order JSON
+    items = OrderItemSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Order
+        fields = [
+            'id', 'customer_name', 'customer_email', 'customer_phone', 
+            'shipping_address', 'pincode', 'total_amount', 
+            'payment_method', 'payment_status', 'order_status', 
+            'razorpay_order_id', 'created_at', 'items'
+        ]
 

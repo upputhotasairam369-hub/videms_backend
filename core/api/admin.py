@@ -1,7 +1,6 @@
 # api/admin.py
 from django.contrib import admin
-from .models import Product, ProductVariant, ProductImage
-from .models import Product, Banner # Make sure to import Banner!
+from .models import Product, ProductVariant, ProductImage, Banner, Order, OrderItem
 
 class ProductVariantInline(admin.TabularInline):
     model = ProductVariant
@@ -35,3 +34,22 @@ class BannerAdmin(admin.ModelAdmin):
     list_editable = ('is_active', 'display_order') # Allows you to turn banners on/off quickly
     list_filter = ('is_active',)
     search_fields = ('title', 'subtitle', 'tag')
+
+
+class OrderItemInline(admin.TabularInline):
+    model = OrderItem
+    extra = 0 # Prevents empty blank rows from showing up
+    readonly_fields = ('product_name', 'price', 'quantity') # Prevents accidental editing of past receipts
+
+@admin.register(Order)
+class OrderAdmin(admin.ModelAdmin):
+    list_display = ('id', 'customer_name', 'total_amount', 'payment_method', 'payment_status', 'order_status', 'created_at')
+    list_filter = ('order_status', 'payment_status', 'payment_method', 'created_at')
+    search_fields = ('customer_name', 'customer_phone', 'customer_email', 'razorpay_order_id', 'id')
+    readonly_fields = ('razorpay_order_id', 'razorpay_payment_id', 'razorpay_signature', 'created_at', 'total_amount')
+    
+    # This attaches the purchased items directly inside the Order view
+    inlines = [OrderItemInline] 
+    
+    # Allows you to quickly change the order status from the main table view
+    list_editable = ('order_status',)

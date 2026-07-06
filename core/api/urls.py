@@ -21,4 +21,9 @@ urlpatterns = [
     path('admin-api/users/', views.admin_users_list, name='admin-users'),
     path('admin-api/orders/', views.admin_orders_list, name='admin-orders'),
     path('banners/', views.get_active_banners, name='active-banners'),
+
+    ### Order details ##
+    path('orders/create/', views.create_order, name='create-order'),
+    path('orders/verify/', views.verify_payment, name='verify-payment'),
+    path('orders/my-orders/', views.my_orders, name='my-orders') 
 ]

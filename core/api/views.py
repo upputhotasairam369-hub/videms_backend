@@ -6,6 +6,9 @@ from rest_framework.response import Response
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.tokens import RefreshToken 
 
+import uuid 
+from .models import Order, OrderItem, ProductVariant # Ensure these are imported at the top!
+from .serializers import OrderSerializer
 # Cleaned up imports (removed duplicates)
 from .models import Product, Banner
 from .serializers import ProductSerializer, UserSerializer, BannerSerializer
@@ -157,4 +160,96 @@ def get_active_banners(request):
     """
     banners = Banner.objects.filter(is_active=True).order_by('display_order')
     serializer = BannerSerializer(banners, many=True)
+    return Response(serializer.data)
+
+@api_view(['POST'])
+@permission_classes([AllowAny]) 
+def create_order(request):
+    data = request.data
+    payment_method = data.get('payment_method', 'RAZORPAY')
+    items_data = data.get('items', [])
+    
+    if not items_data:
+        return Response({"error": "Your cart is empty"}, status=400)
+
+    # 1. Create the main Order Profile in the DB
+    order = Order.objects.create(
+        user=request.user if request.user.is_authenticated else None,
+        customer_name=data.get('customer_name'),
+        customer_email=data.get('customer_email'),
+        customer_phone=data.get('customer_phone'),
+        shipping_address=data.get('shipping_address'),
+        pincode=data.get('pincode'),
+        total_amount=data.get('total_amount'),
+        payment_method=payment_method,
+    )
+
+    # 2. Attach items and DEDUCT INVENTORY STOCK
+    for item in items_data:
+        product_id = item.get('product_id')
+        variant_id = item.get('variant_id')
+        quantity_bought = int(item.get('quantity', 1))
+        
+        product = Product.objects.filter(id=product_id).first() if product_id else None
+        variant = ProductVariant.objects.filter(variant_id=variant_id).first() if variant_id else None
+        
+        # 🚀 CRITICAL: The Stock Deduction Engine
+        if variant:
+            if variant.inventory_quantity >= quantity_bought:
+                # Subtract stock from database
+                variant.inventory_quantity -= quantity_bought
+                variant.save()
+            else:
+                return Response({"error": f"Not enough stock for {product.name if product else 'item'}."}, status=400)
+
+        OrderItem.objects.create(
+            order=order,
+            product=product,
+            variant=variant,
+            product_name=item.get('name', product.name if product else 'Unknown Product'),
+            quantity=quantity_bought,
+            price=item.get('price', 0)
+        )
+
+    # 3. Handle Payment Gateway Verification
+    if payment_method == 'RAZORPAY':
+        order.razorpay_order_id = f"order_{uuid.uuid4().hex[:14]}" 
+        order.save()
+        return Response({
+            "order_id": order.id,
+            "razorpay_order_id": order.razorpay_order_id,
+            "amount": order.total_amount,
+            "currency": "INR"
+        })
+        
+    elif payment_method == 'COD':
+        order.order_status = 'CONFIRMED'
+        order.save()
+        return Response({
+            "message": "Order placed successfully via Cash on Delivery",
+            "order_id": order.id
+        })
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def verify_payment(request):
+    """Marks a Razorpay order as paid in the database"""
+    data = request.data
+    try:
+        order = Order.objects.get(razorpay_order_id=data.get('razorpay_order_id'))
+        order.payment_status = 'PAID'
+        order.order_status = 'CONFIRMED'
+        order.razorpay_payment_id = data.get('razorpay_payment_id')
+        order.razorpay_signature = data.get('razorpay_signature')
+        order.save()
+        return Response({"message": "Payment verified successfully", "order_id": order.id})
+    except Order.DoesNotExist:
+        return Response({"error": "Order not found"}, status=404)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def my_orders(request):
+    """Fetches order history for the React Account Page"""
+    orders = Order.objects.filter(user=request.user).order_by('-created_at')
+    serializer = OrderSerializer(orders, many=True)
     return Response(serializer.data)

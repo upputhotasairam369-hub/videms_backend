@@ -14,10 +14,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-your-super-secret-key-goes-here')
 
 # True locally, False in Railway production
-DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
+DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
 # Allow Railway to host the application
-ALLOWED_HOSTS = ['*'] if not DEBUG else ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['*', 'videmsbackend-production.up.railway.app', 'localhost', '127.0.0.1']
 
 # ==============================================================================
 # 2. APPLICATION DEFINITION
@@ -36,7 +36,7 @@ INSTALLED_APPS = [
     'corsheaders',            
 
     # --- Local Apps ---
-    'api',                    
+    'api'                
 ]
 
 MIDDLEWARE = [
@@ -78,7 +78,7 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # and falls back to your local PostgreSQL when developing on your machine.
 DATABASES = {
     'default': dj_database_url.config(
-        default='postgresql://postgres:EAspUlLarAmEHGpplTLdMjSEcSDNcLDk@hayabusa.proxy.rlwy.net:22399/railway',
+        default='postgresql://postgres:EAspUlLarAmEHGpplTLdMjSEcSDNcLDk@postgres.railway.internal:5432/railway',
         conn_max_age=600
     )
 }

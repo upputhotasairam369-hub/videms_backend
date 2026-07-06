@@ -113,7 +113,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # ==============================================================================
 FRONTEND_URLS = os.environ.get("FRONTEND_URLS", "http://localhost:3000")
 CORS_ALLOWED_ORIGINS = FRONTEND_URLS.split(",")
-CSRF_TRUSTED_ORIGINS = FRONTEND_URLS.split(",")
+CSRF_TRUSTED_ORIGINS = FRONTEND_URLS.split(",") + [
+    "https://videmsbackend-production.up.railway.app"
+]
 
 # ==============================================================================
 # 6. DJANGO REST FRAMEWORK & JWT

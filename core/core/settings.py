@@ -13,8 +13,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # In production, Railway will inject the SECRET_KEY environment variable.
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-your-super-secret-key-goes-here')
 
-# True locally, False in Railway production
-DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = False
 
 # Allow Railway to host the application
 ALLOWED_HOSTS = ['*', 'videmsbackend-production.up.railway.app', 'localhost', '127.0.0.1']
@@ -112,6 +112,7 @@ STORAGES = {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
 }
+WHITENOISE_MANIFEST_STRICT = False
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

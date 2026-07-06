@@ -14,7 +14,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-your-super-secret-key-goes-here')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 # Allow Railway to host the application
 ALLOWED_HOSTS = ['*', 'videmsbackend-production.up.railway.app', 'localhost', '127.0.0.1']

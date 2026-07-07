@@ -21,7 +21,9 @@ class ProductImageSerializer(serializers.ModelSerializer):
     def get_url(self, obj):
         request = self.context.get('request')
         if obj.image and request:
-            return request.build_absolute_uri(obj.image.url)
+            url = request.build_absolute_uri(obj.image.url)
+            # Force HTTPS — Railway terminates SSL at the proxy, so Django sees HTTP
+            return url.replace('http://', 'https://')
         return None
 
 class ProductVariantSerializer(serializers.ModelSerializer):

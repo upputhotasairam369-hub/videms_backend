@@ -122,13 +122,18 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # ==============================================================================
 # 5. CORS & CSRF (REACT INTEGRATION)
 # ==============================================================================
-FRONTEND_URLS = os.environ.get("FRONTEND_URLS", "http://localhost:3000,https://videmsfronted.vercel.app")
-CORS_ALLOWED_ORIGINS = FRONTEND_URLS.split(",")
-CSRF_TRUSTED_ORIGINS = FRONTEND_URLS.split(",") + [
-    "https://videmsbackend-production.up.railway.app",
-    "https://videmsfronted.vercel.app"
+# CORS_ALLOWED_ORIGINS must be a LIST of strings, never True/False.
+# CORS_ALLOW_ALL_ORIGINS=True + CORS_ALLOW_CREDENTIALS=True is also invalid in browsers.
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "https://videmsfronted.vercel.app",
 ]
+CORS_ALLOW_CREDENTIALS = True
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://videmsbackend-production.up.railway.app",
+    "https://videmsfronted.vercel.app",
+]
 # ==============================================================================
 # 6. DJANGO REST FRAMEWORK & JWT
 # ==============================================================================
@@ -142,7 +147,7 @@ SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
     'ROTATE_REFRESH_TOKENS': False,
-    'BLACKLIST_AFTER_ROTATION': True,
+    'BLACKLIST_AFTER_ROTATION': False,  # token_blacklist not in INSTALLED_APPS — must be False
     'ALGORITHM': 'HS256',
     'SIGNING_KEY': SECRET_KEY,
     'AUTH_HEADER_TYPES': ('Bearer',),

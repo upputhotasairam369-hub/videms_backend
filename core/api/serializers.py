@@ -3,7 +3,7 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import Product, ProductImage, ProductVariant
 from .models import Product, Banner
-from .models import Order, OrderItem
+from .models import Order, OrderItem, Category  
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -47,10 +47,17 @@ class ProductSerializer(serializers.ModelSerializer):
 
 
 class BannerSerializer(serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
+
     class Meta:
         model = Banner
-        # 🚀 CHANGED: 'image_url' is now 'image'
         fields = ['id', 'title', 'subtitle', 'tag', 'image', 'link_url', 'display_order']
+
+    def get_image(self, obj):
+        request = self.context.get('request')
+        if obj.image and request:
+            return request.build_absolute_uri(obj.image.url)
+        return None
 
 # Order details #######
 class OrderItemSerializer(serializers.ModelSerializer):
@@ -71,3 +78,48 @@ class OrderSerializer(serializers.ModelSerializer):
             'razorpay_order_id', 'created_at', 'items'
         ]
 
+
+##### Categories Serializers ######### 
+
+class CategorySerializer(serializers.ModelSerializer):
+    cover_image = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Category
+        fields = ['id', 'name', 'slug', 'cover_image', 'display_order', 'status']
+
+    def get_cover_image(self, obj):
+        request = self.context.get('request')
+        if obj.cover_image and request:
+            return request.build_absolute_uri(obj.cover_image.url)
+        return None
+
+from .models import Combination, HomepageBestSeller, HomepageNewArrival
+
+class CombinationSerializer(serializers.ModelSerializer):
+    cover_image = serializers.SerializerMethodField()
+    products = ProductSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Combination
+        fields = ['id', 'title', 'slug', 'description', 'cover_image', 'products', 'display_order', 'status']
+
+    def get_cover_image(self, obj):
+        request = self.context.get('request')
+        if obj.cover_image and request:
+            return request.build_absolute_uri(obj.cover_image.url)
+        return None
+
+class HomepageBestSellerSerializer(serializers.ModelSerializer):
+    product = ProductSerializer(read_only=True)
+
+    class Meta:
+        model = HomepageBestSeller
+        fields = ['id', 'product', 'display_order', 'status']
+
+class HomepageNewArrivalSerializer(serializers.ModelSerializer):
+    product = ProductSerializer(read_only=True)
+
+    class Meta:
+        model = HomepageNewArrival
+        fields = ['id', 'product', 'display_order', 'status']

@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     'rest_framework',         
     'rest_framework_simplejwt', 
     'corsheaders',            
+    'storages',
 
     # --- Local Apps ---
     'api'                
@@ -56,7 +57,7 @@ ROOT_URLCONF = 'core.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -78,6 +79,7 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # and falls back to your local PostgreSQL when developing on your machine.
 DATABASES = {
     'default': dj_database_url.config(
+        # Replace 'postgres:postgres' with your local postgres username and password.
         default='postgresql://postgres:EAspUlLarAmEHGpplTLdMjSEcSDNcLDk@postgres.railway.internal:5432/railway',
         conn_max_age=600
     )
@@ -102,6 +104,7 @@ USE_TZ = True
 # ==============================================================================
 STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') # Required for production
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
 # Enable WhiteNoise to compress and serve static files
 STORAGES = {
@@ -112,6 +115,20 @@ STORAGES = {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
 }
+
+# AWS S3 Configuration for Media Files
+# Using the variables from the user's snippet
+AWS_ACCESS_KEY_ID = os.environ.get('ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = os.environ.get('SECRET_ACCESS_KEY')
+AWS_STORAGE_BUCKET_NAME = os.environ.get('BUCKET')
+AWS_S3_REGION_NAME = os.environ.get('REGION')
+AWS_S3_ENDPOINT_URL = os.environ.get('ENDPOINT')
+
+if AWS_ACCESS_KEY_ID and AWS_STORAGE_BUCKET_NAME:
+    # Use S3 for media storage if AWS variables are set
+    STORAGES["default"]["BACKEND"] = "storages.backends.s3boto3.S3Boto3Storage"
+    AWS_S3_FILE_OVERWRITE = False
+    AWS_DEFAULT_ACL = None
 WHITENOISE_MANIFEST_STRICT = False
 
 MEDIA_URL = '/media/'
@@ -127,6 +144,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "https://videmsfronted.vercel.app",
+    "http://localhost:5173",
 ]
 CORS_ALLOW_CREDENTIALS = True
 

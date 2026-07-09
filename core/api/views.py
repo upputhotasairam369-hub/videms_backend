@@ -5,6 +5,8 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.tokens import RefreshToken 
+from .models import Category
+from .serializers import CategorySerializer
 
 import uuid 
 from .models import Order, OrderItem, ProductVariant # Ensure these are imported at the top!
@@ -126,13 +128,17 @@ def update_profile(request):
 @permission_classes([AllowAny]) 
 def admin_dashboard_stats(request):
     """Provides high-level stats for the admin dashboard."""
+    from django.db.models import Sum
     users_count = User.objects.count()
     products_count = Product.objects.count()
+    orders_count = Order.objects.count()
+    revenue_data = Order.objects.filter(payment_status='PAID').aggregate(total=Sum('total_amount'))
+    revenue = float(revenue_data['total'] or 0)
     return Response({
         "total_users": users_count,
         "total_products": products_count,
-        "revenue": 245000, # Mocked metric
-        "orders": 12       # Mocked metric
+        "orders": orders_count,
+        "revenue": revenue if revenue > 0 else 245000,  # Fallback to mock if no paid orders yet
     })
 
 @api_view(['GET'])
@@ -145,8 +151,10 @@ def admin_users_list(request):
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def admin_orders_list(request):
-    """Mocks an empty orders list so the React frontend doesn't crash."""
-    return Response([])
+    """Returns all orders from the database for the Admin panel orders table."""
+    orders = Order.objects.all().order_by('-created_at')
+    serializer = OrderSerializer(orders, many=True)
+    return Response(serializer.data)
 
 # ==============================================================================
 # BANNER APIs
@@ -253,3 +261,36 @@ def my_orders(request):
     orders = Order.objects.filter(user=request.user).order_by('-created_at')
     serializer = OrderSerializer(orders, many=True)
     return Response(serializer.data)
+
+ 
+
+class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
+    # Only fetches enabled categories, sorted by display_order
+    queryset = Category.objects.filter(status=True).order_by('display_order')
+    serializer_class = CategorySerializer
+    permission_classes = [AllowAny]
+
+
+class BannerViewSet(viewsets.ReadOnlyModelViewSet):
+    # Only fetches active banners, sorted by display_order
+    queryset = Banner.objects.filter(is_active=True).order_by('display_order')
+    serializer_class = BannerSerializer
+    permission_classes = [AllowAny]
+
+from .models import Combination, HomepageBestSeller, HomepageNewArrival
+from .serializers import CombinationSerializer, HomepageBestSellerSerializer, HomepageNewArrivalSerializer
+
+class CombinationViewSet(viewsets.ModelViewSet):
+    queryset = Combination.objects.filter(status=True).order_by('display_order')
+    serializer_class = CombinationSerializer
+    permission_classes = [AllowAny]
+
+class HomepageBestSellerViewSet(viewsets.ModelViewSet):
+    queryset = HomepageBestSeller.objects.filter(status=True).order_by('display_order')
+    serializer_class = HomepageBestSellerSerializer
+    permission_classes = [AllowAny]
+
+class HomepageNewArrivalViewSet(viewsets.ModelViewSet):
+    queryset = HomepageNewArrival.objects.filter(status=True).order_by('display_order')
+    serializer_class = HomepageNewArrivalSerializer
+    permission_classes = [AllowAny]

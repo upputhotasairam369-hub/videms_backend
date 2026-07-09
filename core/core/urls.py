@@ -22,4 +22,5 @@ urlpatterns = [
 # Serves uploaded images (products, banners) in both development and production.
 # In production on Railway, WhiteNoise handles static files but not media,
 # so Django must serve media files directly.
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

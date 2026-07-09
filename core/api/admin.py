@@ -1,6 +1,7 @@
 # api/admin.py
 from django.contrib import admin
-from .models import Product, ProductVariant, ProductImage, Banner, Order, OrderItem
+from .models import Product, ProductVariant, ProductImage, Banner, Order, OrderItem 
+from .models import Category
 
 class ProductVariantInline(admin.TabularInline):
     model = ProductVariant
@@ -52,4 +53,32 @@ class OrderAdmin(admin.ModelAdmin):
     inlines = [OrderItemInline] 
     
     # Allows you to quickly change the order status from the main table view
-    list_editable = ('order_status',)
+    list_editable = ('order_status',) 
+
+@admin.register(Category)
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = ('name', 'display_order', 'status', 'created_at')
+    list_editable = ('display_order', 'status')
+    prepopulated_fields = {'slug': ('name',)}
+
+from .models import Combination, HomepageBestSeller, HomepageNewArrival
+
+@admin.register(Combination)
+class CombinationAdmin(admin.ModelAdmin):
+    list_display = ('title', 'display_order', 'status', 'created_at')
+    list_editable = ('display_order', 'status')
+    prepopulated_fields = {'slug': ('title',)}
+    filter_horizontal = ('products',)
+    search_fields = ('title',)
+
+@admin.register(HomepageBestSeller)
+class HomepageBestSellerAdmin(admin.ModelAdmin):
+    list_display = ('product', 'display_order', 'status', 'created_at')
+    list_editable = ('display_order', 'status')
+    search_fields = ('product__name',)
+
+@admin.register(HomepageNewArrival)
+class HomepageNewArrivalAdmin(admin.ModelAdmin):
+    list_display = ('product', 'display_order', 'status', 'created_at')
+    list_editable = ('display_order', 'status')
+    search_fields = ('product__name',)

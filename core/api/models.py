@@ -139,4 +139,63 @@ class OrderItem(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2, help_text="Price at the time of purchase")
 
     def __str__(self):
-        return f"{self.quantity}x {self.product_name} (Order #{self.order.id})"
+        return f"{self.quantity}x {self.product_name} (Order #{self.order.id})" 
+
+class Category(models.Model):
+    name = models.CharField(max_length=100)
+    slug = models.SlugField(unique=True)
+    cover_image = models.ImageField(upload_to='categories/images/')
+    display_order = models.IntegerField(default=0)
+    status = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['display_order']
+        verbose_name_plural = 'Categories'
+
+    def __str__(self):
+        return self.name
+
+class Combination(models.Model):
+    title = models.CharField(max_length=200, help_text="e.g. Living Room Collection")
+    slug = models.SlugField(unique=True)
+    description = models.TextField(blank=True, null=True)
+    cover_image = models.ImageField(upload_to='combinations/images/')
+    products = models.ManyToManyField(Product, related_name='combinations', blank=True)
+    display_order = models.IntegerField(default=0)
+    status = models.BooleanField(default=True, help_text="Enable/Disable combination")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['display_order', '-created_at']
+
+    def __str__(self):
+        return self.title
+
+class HomepageBestSeller(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    display_order = models.IntegerField(default=0)
+    status = models.BooleanField(default=True, help_text="Enable/Disable on homepage")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['display_order', '-created_at']
+
+    def __str__(self):
+        return f"Bestseller: {self.product.name}"
+
+class HomepageNewArrival(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    display_order = models.IntegerField(default=0)
+    status = models.BooleanField(default=True, help_text="Enable/Disable on homepage")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['display_order', '-created_at']
+
+    def __str__(self):
+        return f"New Arrival: {self.product.name}"

@@ -144,6 +144,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "https://videmsfronted.vercel.app",
+    "https://videmsfronted-1jo12xvnl-upputhotasairam369-8005s-projects.vercel.app",
     "http://localhost:5173",
 ]
 CORS_ALLOW_CREDENTIALS = True
@@ -151,6 +152,7 @@ CORS_ALLOW_CREDENTIALS = True
 CSRF_TRUSTED_ORIGINS = [
     "https://videmsbackend-production.up.railway.app",
     "https://videmsfronted.vercel.app",
+    "https://videmsfronted-1jo12xvnl-upputhotasairam369-8005s-projects.vercel.app",
 ]
 # ==============================================================================
 # 6. DJANGO REST FRAMEWORK & JWT

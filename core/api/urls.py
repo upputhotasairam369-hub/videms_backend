@@ -16,8 +16,7 @@ urlpatterns = [
     path('health/', views.health_check, name='health-check'), 
     path('', include(router.urls)),
     
-    path('auth/send-otp/', views.send_otp, name='send-otp'),
-    path('auth/verify-otp/', views.verify_otp, name='verify-otp'),
+    path('auth/google/', views.google_login, name='google-login'),
     path('auth/me/', views.current_user, name='current-user'),
     path('auth/me/update/', views.update_profile, name='update-profile'),
     

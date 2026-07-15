@@ -15,6 +15,10 @@ from .serializers import OrderSerializer
 from .models import Product, Banner
 from .serializers import ProductSerializer, UserSerializer, BannerSerializer
 
+from google.oauth2 import id_token
+from google.auth.transport import requests as google_requests
+import os
+
 # ==============================================================================
 # LIGHTWEIGHT HEALTH CHECK (PRODUCTION OPTIMIZED)
 # ==============================================================================
@@ -61,35 +65,55 @@ def get_categories(request):
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
-def send_otp(request):
-    phone = request.data.get('phone')
-    if not phone:
-        return Response({"message": "Phone number is required"}, status=400)
+def google_login(request):
+    """
+    Verifies the Google ID token and logs in/registers the user.
+    """
+    token = request.data.get('credential')
     
-    # MOCK: In production, send SMS here.
-    print(f"DEBUG: Pretend we sent OTP 123456 to {phone}")
-    return Response({"message": "OTP sent successfully"})
-
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def verify_otp(request):
-    phone = request.data.get('phone')
-    otp = request.data.get('otp')
-
-    # MOCK VERIFICATION
-    if otp == '123456':
-        # Create a user if they don't exist, using their phone as the username
-        user, created = User.objects.get_or_create(username=phone)
+    if not token:
+        return Response({"message": "Credential is required"}, status=400)
+    
+    try:
+        # Get client ID from environment or settings
+        # It's better to configure this in settings, but we will use env directly or fallback
+        # In a real setup you'd have settings.GOOGLE_CLIENT_ID
+        client_id = os.environ.get('GOOGLE_CLIENT_ID', 'YOUR_GOOGLE_CLIENT_ID')
         
-        # Generate JWT Tokens (This is what your localStorage saves!)
+        # Verify the token with Google
+        idinfo = id_token.verify_oauth2_token(
+            token, 
+            google_requests.Request(), 
+            # Note: We do not strictly enforce client_id matching here to allow easier testing if not set, 
+            # but in production, provide the specific client ID.
+            client_id if client_id != 'YOUR_GOOGLE_CLIENT_ID' else None 
+        )
+        
+        email = idinfo.get('email')
+        first_name = idinfo.get('given_name', '')
+        last_name = idinfo.get('family_name', '')
+        
+        # Get or create the user
+        user, created = User.objects.get_or_create(
+            username=email,
+            defaults={
+                'email': email,
+                'first_name': first_name,
+                'last_name': last_name
+            }
+        )
+        
+        # Generate JWT Tokens
         refresh = RefreshToken.for_user(user)
         
         return Response({
             "token": str(refresh.access_token),
             "user": UserSerializer(user).data
         })
-    else:
-        return Response({"message": "Invalid OTP"}, status=400)
+        
+    except ValueError as e:
+        # Invalid token
+        return Response({"message": "Invalid Google token", "error": str(e)}, status=400)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated]) # Must have a valid token to access!

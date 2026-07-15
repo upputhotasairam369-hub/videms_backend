@@ -112,8 +112,18 @@ def google_login(request):
         })
         
     except ValueError as e:
-        # Invalid token
+        # Invalid token signature or expired token
         return Response({"message": "Invalid Google token", "error": str(e)}, status=400)
+        
+    except Exception as e:
+        # Catch all other crashes (Database constraints, Network failures)
+        # and return a clean JSON 500 instead of crashing the server.
+        import traceback
+        traceback.print_exc()
+        return Response({
+            "message": "An unexpected error occurred during authentication.", 
+            "error": str(e)
+        }, status=500)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated]) # Must have a valid token to access!

@@ -77,10 +77,14 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # ==============================================================================
 # Automatically switches: Uses Railway's DATABASE_URL in production, 
 DATABASES = {
-    'default': dj_database_url.config(
-        default=os.environ.get('DATABASE_URL', 'postgresql://postgres:upputhota@123@localhost:5432/ProductsDatabase'),
-        conn_max_age=600
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'ProductsDatabase',
+        'USER': 'postgres',
+        'PASSWORD': 'upputhota@123',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    }
 }
 
 

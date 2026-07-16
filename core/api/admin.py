@@ -1,7 +1,7 @@
 # api/admin.py
 from django.contrib import admin
 from .models import Product, ProductVariant, ProductImage, Banner, Order, OrderItem 
-from .models import Category
+from .models import Category, Subcategory
 
 class ProductVariantInline(admin.TabularInline):
     model = ProductVariant
@@ -61,6 +61,14 @@ class CategoryAdmin(admin.ModelAdmin):
     list_editable = ('display_order', 'status')
     prepopulated_fields = {'slug': ('name',)}
 
+@admin.register(Subcategory)
+class SubcategoryAdmin(admin.ModelAdmin):
+    list_display = ('name', 'category', 'display_order', 'status', 'created_at')
+    list_editable = ('display_order', 'status')
+    prepopulated_fields = {'slug': ('name',)}
+    list_filter = ('category', 'status')
+    search_fields = ('name', 'category__name')
+
 from .models import Combination, HomepageBestSeller, HomepageNewArrival
 
 @admin.register(Combination)
@@ -82,3 +90,38 @@ class HomepageNewArrivalAdmin(admin.ModelAdmin):
     list_display = ('product', 'display_order', 'status', 'created_at')
     list_editable = ('display_order', 'status')
     search_fields = ('product__name',)
+
+import csv
+from django.http import HttpResponse
+from .models import BusinessBanner, BulkOrder
+
+@admin.action(description='Export Selected to CSV')
+def export_as_csv(self, request, queryset):
+    meta = self.model._meta
+    field_names = [field.name for field in meta.fields]
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename={}.csv'.format(meta)
+    writer = csv.writer(response)
+
+    writer.writerow(field_names)
+    for obj in queryset:
+        row = [getattr(obj, field) for field in field_names]
+        writer.writerow(row)
+
+    return response
+
+@admin.register(BusinessBanner)
+class BusinessBannerAdmin(admin.ModelAdmin):
+    list_display = ('title', 'small_heading', 'display_order', 'is_active', 'created_at')
+    list_editable = ('display_order', 'is_active')
+    search_fields = ('title', 'subtitle', 'small_heading')
+    list_filter = ('is_active',)
+
+@admin.register(BulkOrder)
+class BulkOrderAdmin(admin.ModelAdmin):
+    list_display = ('company_name', 'customer_name', 'email', 'business_type', 'status', 'created_at')
+    list_editable = ('status',)
+    list_filter = ('status', 'business_type', 'created_at')
+    search_fields = ('company_name', 'customer_name', 'email', 'phone')
+    actions = [export_as_csv]

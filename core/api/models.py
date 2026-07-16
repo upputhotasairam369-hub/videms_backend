@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 
 class Product(models.Model):
     """
@@ -157,6 +158,22 @@ class Category(models.Model):
     def __str__(self):
         return self.name
 
+class Subcategory(models.Model):
+    category = models.ForeignKey(Category, related_name='subcategories', on_delete=models.CASCADE)
+    name = models.CharField(max_length=100)
+    slug = models.SlugField(unique=True)
+    status = models.BooleanField(default=True)
+    display_order = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['display_order']
+        verbose_name_plural = 'Subcategories'
+
+    def __str__(self):
+        return f"{self.category.name} -> {self.name}"
+
 class Combination(models.Model):
     title = models.CharField(max_length=200, help_text="e.g. Living Room Collection")
     slug = models.SlugField(unique=True)
@@ -199,3 +216,88 @@ class HomepageNewArrival(models.Model):
 
     def __str__(self):
         return f"New Arrival: {self.product.name}"
+
+class BusinessBanner(models.Model):
+    small_heading = models.CharField(max_length=100, default="Hostels • Enterprise • Hotels • Office")
+    title = models.CharField(max_length=200, default="Videms for Business")
+    subtitle = models.CharField(max_length=255, default="Special Pricing & Custom Solutions")
+    button_text = models.CharField(max_length=50, default="Place Bulk Order")
+    button_color = models.CharField(max_length=20, default="#f97316")
+    gradient_overlay = models.CharField(max_length=100, default="linear-gradient(to right, rgba(0,0,0,0.8), rgba(0,0,0,0.4))")
+    
+    image = models.ImageField(upload_to='business_banners/', help_text="Background image for the banner")
+    display_order = models.IntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['display_order', '-created_at']
+        verbose_name_plural = 'Business Banners'
+
+    def __str__(self):
+        return self.title
+
+def validate_file_size(value):
+    filesize = value.size
+    if filesize > 4194304: # 4MB
+        raise ValidationError("The maximum file size that can be uploaded is 4MB")
+    else:
+        return value
+
+class BulkOrder(models.Model):
+    BUSINESS_TYPE_CHOICES = [
+        ('Hotel', 'Hotel'),
+        ('Hostel', 'Hostel'),
+        ('Office', 'Office'),
+        ('Enterprise', 'Enterprise'),
+        ('Hospital', 'Hospital'),
+        ('School', 'School'),
+        ('College', 'College'),
+        ('Apartment', 'Apartment'),
+        ('Builder', 'Builder'),
+        ('Corporate', 'Corporate'),
+        ('Other', 'Other'),
+    ]
+
+    STATUS_CHOICES = [
+        ('New', 'New'),
+        ('Contacted', 'Contacted'),
+        ('Quotation Sent', 'Quotation Sent'),
+        ('Negotiation', 'Negotiation'),
+        ('Approved', 'Approved'),
+        ('Rejected', 'Rejected'),
+        ('Completed', 'Completed'),
+    ]
+
+    company_name = models.CharField(max_length=255)
+    customer_name = models.CharField(max_length=255)
+    email = models.EmailField()
+    phone = models.CharField(max_length=20)
+    business_type = models.CharField(max_length=50, choices=BUSINESS_TYPE_CHOICES)
+    
+    city = models.CharField(max_length=100)
+    state = models.CharField(max_length=100)
+    pincode = models.CharField(max_length=20, blank=True, null=True)
+    
+    # categories selected
+    categories = models.JSONField(default=list)
+    
+    estimated_quantity = models.CharField(max_length=100, blank=True, null=True)
+    estimated_budget = models.CharField(max_length=100, blank=True, null=True)
+    delivery_date = models.CharField(max_length=100, blank=True, null=True)
+    
+    notes = models.TextField(blank=True, null=True)
+    attachment = models.FileField(upload_to='bulk_orders/attachments/', blank=True, null=True, validators=[validate_file_size])
+    
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='New')
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.company_name} - {self.customer_name}"

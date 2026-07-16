@@ -11,7 +11,8 @@ router.register(r'products', views.ProductViewSet, basename='product')
 router.register(r'combinations', views.CombinationViewSet, basename='combination')
 router.register(r'home/bestsellers', views.HomepageBestSellerViewSet, basename='home-bestseller')
 router.register(r'home/new-arrivals', views.HomepageNewArrivalViewSet, basename='home-new-arrival')
-
+router.register(r'business-banner', views.BusinessBannerViewSet, basename='business-banner')
+router.register(r'bulk-orders', views.BulkOrderViewSet, basename='bulk-order')
 urlpatterns = [
     path('health/', views.health_check, name='health-check'), 
     path('', include(router.urls)),

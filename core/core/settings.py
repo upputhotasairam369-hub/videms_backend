@@ -76,16 +76,16 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # 3. DATABASE CONFIGURATION
 # ==============================================================================
 # Automatically switches: Uses Railway's DATABASE_URL in production, 
-# and falls back to your local PostgreSQL when developing on your machine.
 DATABASES = {
     'default': dj_database_url.config(
-        # Replace 'postgres:postgres' with your local postgres username and password.
-        default='postgresql://postgres:EAspUlLarAmEHGpplTLdMjSEcSDNcLDk@postgres.railway.internal:5432/railway',
+        default=os.environ.get('DATABASE_URL', 'postgresql://postgres:upputhota@123@localhost:5432/ProductsDatabase'),
         conn_max_age=600
     )
 }
 
-# Password validation
+
+
+
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',},

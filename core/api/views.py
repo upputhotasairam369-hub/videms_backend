@@ -328,3 +328,29 @@ class HomepageNewArrivalViewSet(viewsets.ModelViewSet):
     queryset = HomepageNewArrival.objects.filter(status=True).order_by('display_order')
     serializer_class = HomepageNewArrivalSerializer
     permission_classes = [AllowAny]
+
+from rest_framework.throttling import AnonRateThrottle
+from .models import BusinessBanner, BulkOrder
+from .serializers import BusinessBannerSerializer, BulkOrderSerializer
+
+class BusinessBannerViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = BusinessBanner.objects.filter(is_active=True).order_by('display_order')
+    serializer_class = BusinessBannerSerializer
+    permission_classes = [AllowAny]
+
+class BulkOrderThrottle(AnonRateThrottle):
+    rate = '5/hour'
+
+class BulkOrderViewSet(viewsets.ModelViewSet):
+    queryset = BulkOrder.objects.all().order_by('-created_at')
+    serializer_class = BulkOrderSerializer
+    
+    def get_permissions(self):
+        if self.action == 'create':
+            return [AllowAny()]
+        return [IsAuthenticated()]
+    
+    def get_throttles(self):
+        if self.action == 'create':
+            return [BulkOrderThrottle()]
+        return super().get_throttles()

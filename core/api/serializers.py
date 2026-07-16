@@ -3,7 +3,7 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import Product, ProductImage, ProductVariant
 from .models import Product, Banner
-from .models import Order, OrderItem, Category  
+from .models import Order, OrderItem, Category, Subcategory
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -81,12 +81,18 @@ class OrderSerializer(serializers.ModelSerializer):
 
 ##### Categories Serializers ######### 
 
+class SubcategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Subcategory
+        fields = ['id', 'name', 'slug', 'display_order', 'status']
+
 class CategorySerializer(serializers.ModelSerializer):
     cover_image = serializers.SerializerMethodField()
+    subcategories = SubcategorySerializer(many=True, read_only=True)
 
     class Meta:
         model = Category
-        fields = ['id', 'name', 'slug', 'cover_image', 'display_order', 'status']
+        fields = ['id', 'name', 'slug', 'cover_image', 'display_order', 'status', 'subcategories']
 
     def get_cover_image(self, obj):
         request = self.context.get('request')
@@ -94,7 +100,7 @@ class CategorySerializer(serializers.ModelSerializer):
             return request.build_absolute_uri(obj.cover_image.url)
         return None
 
-from .models import Combination, HomepageBestSeller, HomepageNewArrival
+from .models import Combination, HomepageBestSeller, HomepageNewArrival, BusinessBanner, BulkOrder
 
 class CombinationSerializer(serializers.ModelSerializer):
     cover_image = serializers.SerializerMethodField()
@@ -123,3 +129,23 @@ class HomepageNewArrivalSerializer(serializers.ModelSerializer):
     class Meta:
         model = HomepageNewArrival
         fields = ['id', 'product', 'display_order', 'status']
+
+class BusinessBannerSerializer(serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
+
+    class Meta:
+        model = BusinessBanner
+        fields = ['id', 'small_heading', 'title', 'subtitle', 'button_text', 'button_color', 'gradient_overlay', 'image', 'display_order', 'is_active']
+
+    def get_image(self, obj):
+        request = self.context.get('request')
+        if obj.image and request:
+            url = request.build_absolute_uri(obj.image.url)
+            return url.replace('http://', 'https://')
+        return None
+
+class BulkOrderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BulkOrder
+        fields = '__all__'
+        read_only_fields = ['status', 'created_at', 'updated_at']

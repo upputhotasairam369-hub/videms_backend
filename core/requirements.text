@@ -1,5 +1,5 @@
 # --- Core Framework ---
-Django>=5.0,<5.1
+Django>=5.0,<6.0
 djangorestframework>=3.14.0
 
 # --- React Integration & API ---

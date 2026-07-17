@@ -76,16 +76,30 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # 3. DATABASE CONFIGURATION
 # ==============================================================================
 # Automatically switches: Uses Railway's DATABASE_URL in production, 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'ProductsDatabase',
-        'USER': 'postgres',
-        'PASSWORD': 'upputhota@123',
-        'HOST': 'localhost',
-        'PORT': '5432',
+# and falls back to local PostgreSQL for local development.
+
+RAILWAY_DATABASE_URL = 'postgresql://postgres:EAspUlLarAmEHGpplTLdMjSEcSDNcLDk@postgres.railway.internal:5432/railway'
+
+if os.environ.get('RAILWAY_ENVIRONMENT') or os.environ.get('DATABASE_URL'):
+    # In production on Railway, we use dj_database_url to parse the connection string
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=os.environ.get('DATABASE_URL', RAILWAY_DATABASE_URL),
+            conn_max_age=600
+        )
     }
-}
+else:
+    # For running on local host, we use your local Postgres setup
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'ProductsDatabase',
+            'USER': 'postgres',
+            'PASSWORD': 'upputhota@123',
+            'HOST': 'localhost',
+            'PORT': '5432',
+        }
+    }
 
 
 

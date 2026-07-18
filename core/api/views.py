@@ -302,6 +302,9 @@ def my_orders(request):
 
  
 
+from django.utils.decorators import method_decorator
+
+@method_decorator(cache_page(60 * 60 * 24), name='dispatch')
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     # Only fetches enabled categories, sorted by display_order
     queryset = Category.objects.filter(status=True).order_by('display_order')
@@ -309,6 +312,7 @@ class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [AllowAny]
 
 
+@method_decorator(cache_page(60 * 60 * 24), name='dispatch')
 class BannerViewSet(viewsets.ReadOnlyModelViewSet):
     # Only fetches active banners, sorted by display_order
     queryset = Banner.objects.filter(is_active=True).order_by('display_order')
@@ -318,16 +322,19 @@ class BannerViewSet(viewsets.ReadOnlyModelViewSet):
 from .models import Combination, HomepageBestSeller, HomepageNewArrival
 from .serializers import CombinationSerializer, HomepageBestSellerSerializer, HomepageNewArrivalSerializer
 
+@method_decorator(cache_page(60 * 60 * 2), name='dispatch')
 class CombinationViewSet(viewsets.ModelViewSet):
     queryset = Combination.objects.filter(status=True).order_by('display_order')
     serializer_class = CombinationSerializer
     permission_classes = [AllowAny]
 
+@method_decorator(cache_page(60 * 60 * 2), name='dispatch')
 class HomepageBestSellerViewSet(viewsets.ModelViewSet):
     queryset = HomepageBestSeller.objects.filter(status=True).order_by('display_order')
     serializer_class = HomepageBestSellerSerializer
     permission_classes = [AllowAny]
 
+@method_decorator(cache_page(60 * 60 * 2), name='dispatch')
 class HomepageNewArrivalViewSet(viewsets.ModelViewSet):
     queryset = HomepageNewArrival.objects.filter(status=True).order_by('display_order')
     serializer_class = HomepageNewArrivalSerializer
@@ -337,6 +344,7 @@ from rest_framework.throttling import AnonRateThrottle
 from .models import BusinessBanner, BulkOrder
 from .serializers import BusinessBannerSerializer, BulkOrderSerializer
 
+@method_decorator(cache_page(60 * 60 * 24), name='dispatch')
 class BusinessBannerViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = BusinessBanner.objects.filter(is_active=True).order_by('display_order')
     serializer_class = BusinessBannerSerializer

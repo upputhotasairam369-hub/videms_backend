@@ -76,17 +76,16 @@ def google_login(request):
     
     try:
         # Get client ID from environment or settings
-        # It's better to configure this in settings, but we will use env directly or fallback
-        # In a real setup you'd have settings.GOOGLE_CLIENT_ID
-        client_id = os.environ.get('GOOGLE_CLIENT_ID', 'YOUR_GOOGLE_CLIENT_ID')
+        # Strip any accidental whitespace or quotes that might cause a mismatch error
+        client_id = os.environ.get('GOOGLE_CLIENT_ID', '').strip().strip("'").strip('"')
+        
+        audience = client_id if client_id and client_id != 'YOUR_GOOGLE_CLIENT_ID' else None
         
         # Verify the token with Google
         idinfo = id_token.verify_oauth2_token(
             token, 
             google_requests.Request(), 
-            # Note: We do not strictly enforce client_id matching here to allow easier testing if not set, 
-            # but in production, provide the specific client ID.
-            client_id if client_id != 'YOUR_GOOGLE_CLIENT_ID' else None 
+            audience 
         )
         
         email = idinfo.get('email')
@@ -112,8 +111,9 @@ def google_login(request):
         })
         
     except ValueError as e:
-        # Invalid token signature or expired token
-        return Response({"message": "Invalid Google token", "error": str(e)}, status=400)
+        # Invalid token signature, expired token, or audience mismatch
+        print(f"Google Token Verification Failed: {str(e)}") # Added for server logs
+        return Response({"message": "Invalid Google token", "error": str(e), "hint": "Check if GOOGLE_CLIENT_ID matches frontend exactly"}, status=400)
         
     except Exception as e:
         # Catch all other crashes (Database constraints, Network failures)

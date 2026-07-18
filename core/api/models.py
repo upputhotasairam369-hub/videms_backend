@@ -8,11 +8,11 @@ class Product(models.Model):
     """
     name = models.CharField(max_length=255)
     slug = models.SlugField(max_length=255, unique=True, help_text="URL friendly name (e.g., urban-ladder-sofa)")
-    brand = models.CharField(max_length=100)
+    brand = models.CharField(max_length=100, db_index=True)
     
-    category = models.CharField(max_length=100)
-    subcategory = models.CharField(max_length=100)
-    item_type = models.CharField(max_length=100)
+    category = models.CharField(max_length=100, db_index=True)
+    subcategory = models.CharField(max_length=100, db_index=True)
+    item_type = models.CharField(max_length=100, db_index=True)
     finish = models.CharField(max_length=100)
     
     # 🚀 ADDED: The description field for the Admin Panel
@@ -68,7 +68,7 @@ class Banner(models.Model):
     image = models.ImageField(upload_to='banners/', help_text="Upload the banner image from your computer")
     
     link_url = models.CharField(max_length=500, default='/products', help_text="Where should this banner take the user?")
-    is_active = models.BooleanField(default=True, help_text="Uncheck to hide this banner from the website")
+    is_active = models.BooleanField(default=True, db_index=True, help_text="Uncheck to hide this banner from the website")
     display_order = models.IntegerField(default=0, help_text="Lower numbers appear first (e.g., 1 comes before 5)")
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -147,7 +147,7 @@ class Category(models.Model):
     slug = models.SlugField(unique=True)
     cover_image = models.ImageField(upload_to='categories/images/')
     display_order = models.IntegerField(default=0)
-    status = models.BooleanField(default=True)
+    status = models.BooleanField(default=True, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -162,7 +162,7 @@ class Subcategory(models.Model):
     category = models.ForeignKey(Category, related_name='subcategories', on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
     slug = models.SlugField(unique=True)
-    status = models.BooleanField(default=True)
+    status = models.BooleanField(default=True, db_index=True)
     display_order = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -181,7 +181,7 @@ class Combination(models.Model):
     cover_image = models.ImageField(upload_to='combinations/images/')
     products = models.ManyToManyField(Product, related_name='combinations', blank=True)
     display_order = models.IntegerField(default=0)
-    status = models.BooleanField(default=True, help_text="Enable/Disable combination")
+    status = models.BooleanField(default=True, db_index=True, help_text="Enable/Disable combination")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -194,7 +194,7 @@ class Combination(models.Model):
 class HomepageBestSeller(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     display_order = models.IntegerField(default=0)
-    status = models.BooleanField(default=True, help_text="Enable/Disable on homepage")
+    status = models.BooleanField(default=True, db_index=True, help_text="Enable/Disable on homepage")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -207,7 +207,7 @@ class HomepageBestSeller(models.Model):
 class HomepageNewArrival(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     display_order = models.IntegerField(default=0)
-    status = models.BooleanField(default=True, help_text="Enable/Disable on homepage")
+    status = models.BooleanField(default=True, db_index=True, help_text="Enable/Disable on homepage")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -227,7 +227,7 @@ class BusinessBanner(models.Model):
     
     image = models.ImageField(upload_to='business_banners/', help_text="Background image for the banner")
     display_order = models.IntegerField(default=0)
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=True, db_index=True)
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

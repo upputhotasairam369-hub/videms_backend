@@ -48,8 +48,11 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [AllowAny]
     lookup_field = 'slug' # Allows us to fetch by slug (e.g., /api/products/urban-sofa/) instead of ID
 
+from django.views.decorators.cache import cache_page
+
 @api_view(['GET'])
 @permission_classes([AllowAny])
+@cache_page(60 * 60 * 24)
 def get_categories(request):
     """
     Extracts a unique list of categories from the products in the database.
@@ -195,6 +198,7 @@ def admin_orders_list(request):
 # ==============================================================================
 @api_view(['GET'])
 @permission_classes([AllowAny])
+@cache_page(60 * 60 * 24)
 def get_active_banners(request):
     """
     Fetches all active hero banners for the React frontend, 

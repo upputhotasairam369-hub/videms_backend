@@ -45,6 +45,27 @@ class ProductSerializer(serializers.ModelSerializer):
             'item_type', 'finish', 'description', 'images', 'variants'
         ]
 
+class LightweightProductSerializer(serializers.ModelSerializer):
+    """Used for list views and homepage carousels to prevent payload bloat (N+1 queries)"""
+    primary_image = serializers.SerializerMethodField()
+    starting_price = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Product
+        fields = ['id', 'name', 'slug', 'primary_image', 'starting_price']
+
+    def get_primary_image(self, obj):
+        primary = next((img for img in obj.images.all() if img.is_primary), None)
+        request = self.context.get('request')
+        if primary and primary.image and request:
+            url = request.build_absolute_uri(primary.image.url)
+            return url.replace('http://', 'https://')
+        return None
+        
+    def get_starting_price(self, obj):
+        first_variant = obj.variants.first()
+        return first_variant.price if first_variant else 0
+
 
 class BannerSerializer(serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
@@ -104,7 +125,7 @@ from .models import Combination, HomepageBestSeller, HomepageNewArrival, Busines
 
 class CombinationSerializer(serializers.ModelSerializer):
     cover_image = serializers.SerializerMethodField()
-    products = ProductSerializer(many=True, read_only=True)
+    products = LightweightProductSerializer(many=True, read_only=True)
 
     class Meta:
         model = Combination
@@ -117,14 +138,14 @@ class CombinationSerializer(serializers.ModelSerializer):
         return None
 
 class HomepageBestSellerSerializer(serializers.ModelSerializer):
-    product = ProductSerializer(read_only=True)
+    product = LightweightProductSerializer(read_only=True)
 
     class Meta:
         model = HomepageBestSeller
         fields = ['id', 'product', 'display_order', 'status']
 
 class HomepageNewArrivalSerializer(serializers.ModelSerializer):
-    product = ProductSerializer(read_only=True)
+    product = LightweightProductSerializer(read_only=True)
 
     class Meta:
         model = HomepageNewArrival

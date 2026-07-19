@@ -8,6 +8,7 @@ geopy==2.4.1
 gunicorn==21.2.0
 packaging==26.2
 pillow==12.2.0
+pillow-avif-plugin==1.5.5
 PyJWT==2.13.0
 sqlparse==0.5.5
 tzdata==2026.2

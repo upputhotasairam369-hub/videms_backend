@@ -312,7 +312,7 @@ class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [AllowAny]
 
 
-@method_decorator(cache_page(60 * 60 * 24), name='dispatch')
+# @method_decorator(cache_page(60 * 60 * 24), name='dispatch') # Removed so admin updates reflect instantly
 class BannerViewSet(viewsets.ReadOnlyModelViewSet):
     # Only fetches active banners, sorted by display_order
     queryset = Banner.objects.filter(is_active=True).order_by('display_order')

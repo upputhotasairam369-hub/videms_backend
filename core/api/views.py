@@ -11,6 +11,7 @@ from .serializers import CategorySerializer
 import uuid 
 from .models import Order, OrderItem, ProductVariant # Ensure these are imported at the top!
 from .serializers import OrderSerializer
+from rest_framework.pagination import PageNumberPagination
 # Cleaned up imports (removed duplicates)
 from .models import Product, Banner
 from .serializers import ProductSerializer, UserSerializer, BannerSerializer
@@ -182,16 +183,24 @@ def admin_dashboard_stats(request):
 @permission_classes([AllowAny])
 def admin_users_list(request):
     """Fetches all registered users for the Admin panel user table."""
-    users = User.objects.all().order_by('-date_joined')
-    return Response(UserSerializer(users, many=True).data)
+    # Use .only() to fetch specific columns and avoid fetching unnecessary fields
+    users = User.objects.only('id', 'username', 'email', 'first_name', 'last_name', 'date_joined').order_by('-date_joined')
+    
+    paginator = PageNumberPagination()
+    paginator.page_size = 50
+    result_page = paginator.paginate_queryset(users, request)
+    return paginator.get_paginated_response(UserSerializer(result_page, many=True).data)
     
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def admin_orders_list(request):
     """Returns all orders from the database for the Admin panel orders table."""
-    orders = Order.objects.all().order_by('-created_at')
-    serializer = OrderSerializer(orders, many=True)
-    return Response(serializer.data)
+    orders = Order.objects.select_related('user').prefetch_related('items__product', 'items__variant').order_by('-created_at')
+    
+    paginator = PageNumberPagination()
+    paginator.page_size = 50
+    result_page = paginator.paginate_queryset(orders, request)
+    return paginator.get_paginated_response(OrderSerializer(result_page, many=True).data)
 
 # ==============================================================================
 # BANNER APIs
@@ -296,9 +305,12 @@ def verify_payment(request):
 @permission_classes([IsAuthenticated])
 def my_orders(request):
     """Fetches order history for the React Account Page"""
-    orders = Order.objects.filter(user=request.user).order_by('-created_at')
-    serializer = OrderSerializer(orders, many=True)
-    return Response(serializer.data)
+    orders = Order.objects.filter(user=request.user).prefetch_related('items__product', 'items__variant').order_by('-created_at')
+    
+    paginator = PageNumberPagination()
+    paginator.page_size = 20
+    result_page = paginator.paginate_queryset(orders, request)
+    return paginator.get_paginated_response(OrderSerializer(result_page, many=True).data)
 
  
 
@@ -307,7 +319,7 @@ from django.utils.decorators import method_decorator
 @method_decorator(cache_page(60 * 60 * 24), name='dispatch')
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     # Only fetches enabled categories, sorted by display_order
-    queryset = Category.objects.filter(status=True).order_by('display_order')
+    queryset = Category.objects.filter(status=True).prefetch_related('subcategories').order_by('display_order')
     serializer_class = CategorySerializer
     permission_classes = [AllowAny]
 
@@ -324,19 +336,19 @@ from .serializers import CombinationSerializer, HomepageBestSellerSerializer, Ho
 
 @method_decorator(cache_page(60 * 60 * 2), name='dispatch')
 class CombinationViewSet(viewsets.ModelViewSet):
-    queryset = Combination.objects.filter(status=True).order_by('display_order')
+    queryset = Combination.objects.filter(status=True).prefetch_related('products', 'products__images', 'products__variants').order_by('display_order')
     serializer_class = CombinationSerializer
     permission_classes = [AllowAny]
 
 @method_decorator(cache_page(60 * 60 * 2), name='dispatch')
 class HomepageBestSellerViewSet(viewsets.ModelViewSet):
-    queryset = HomepageBestSeller.objects.filter(status=True).order_by('display_order')
+    queryset = HomepageBestSeller.objects.filter(status=True).select_related('product').prefetch_related('product__images', 'product__variants').order_by('display_order')
     serializer_class = HomepageBestSellerSerializer
     permission_classes = [AllowAny]
 
 @method_decorator(cache_page(60 * 60 * 2), name='dispatch')
 class HomepageNewArrivalViewSet(viewsets.ModelViewSet):
-    queryset = HomepageNewArrival.objects.filter(status=True).order_by('display_order')
+    queryset = HomepageNewArrival.objects.filter(status=True).select_related('product').prefetch_related('product__images', 'product__variants').order_by('display_order')
     serializer_class = HomepageNewArrivalSerializer
     permission_classes = [AllowAny]
 

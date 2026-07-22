@@ -81,7 +81,7 @@ def google_login(request):
     try:
         # Get client ID from environment or settings
         # Strip any accidental whitespace or quotes that might cause a mismatch error
-        client_id = os.environ.get('GOOGLE_CLIENT_ID', '').strip().strip("'").strip('"')
+        client_id = os.environ.get('GOOGLE_CLIENT_ID', '35112506714-6tn1eei86r6hf2aibhddtc00l26luc9a.apps.googleusercontent.com').strip().strip("'").strip('"')
         
         audience = client_id if client_id and client_id != 'YOUR_GOOGLE_CLIENT_ID' else None
         

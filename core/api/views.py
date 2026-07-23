@@ -84,13 +84,13 @@ def google_login(request):
         client_id = os.environ.get('GOOGLE_CLIENT_ID', '35112506714-6tn1eei86r6hf2aibhddtc00l26luc9a.apps.googleusercontent.com').strip().strip("'").strip('"')
         
         audience = client_id if client_id and client_id != 'YOUR_GOOGLE_CLIENT_ID' else None
-        
+          
         # Verify the token with Google
         idinfo = id_token.verify_oauth2_token(
             token, 
             google_requests.Request(), 
             audience 
-        )
+        )  
         
         email = idinfo.get('email')
         first_name = idinfo.get('given_name', '')
